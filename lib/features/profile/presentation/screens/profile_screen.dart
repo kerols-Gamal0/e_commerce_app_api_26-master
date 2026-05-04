@@ -1,5 +1,7 @@
 import 'package:ecommerce_app_api_26/core/cash/cash_helper.dart';
 import 'package:ecommerce_app_api_26/features/auth/presentation/screens/login_screen.dart';
+import 'package:ecommerce_app_api_26/features/profile/data/models/profile_model.dart';
+import 'package:ecommerce_app_api_26/features/profile/data/profile_api/profile_api.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -9,138 +11,160 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(24, 60, 24, 30),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue.shade400, Colors.blue.shade700],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(40),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                        ),
-                      ],
+      body: FutureBuilder(
+        future: ProfileApi().getProfile(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          ProfileModel profile = snapshot.data!;
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.fromLTRB(24, 60, 24, 30),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blue.shade400, Colors.blue.shade700],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    child: const CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.white,
-                      child: Icon(Icons.person, size: 40, color: Colors.blue),
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(40),
                     ),
                   ),
-                  const SizedBox(width: 20),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Text(
-                        'John Doe',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                            ),
+                          ],
+                        ),
+                        child: const CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Colors.white,
+                          child: Icon(
+                            Icons.person,
+                            size: 40,
+                            color: Colors.blue,
+                          ),
                         ),
                       ),
-                      Text(
-                        'Premium Member',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      const SizedBox(width: 20),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            profile.name ?? 'User Name',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            profile.role ?? 'User Role',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.edit_outlined,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {},
                       ),
                     ],
                   ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  _buildSectionTitle('Account Settings'),
-                  _buildProfileTile(
-                    Icons.shopping_bag_outlined,
-                    'My Orders',
-                    'Track your orders',
-                  ),
-                  _buildProfileTile(
-                    Icons.favorite_outline,
-                    'Wishlist',
-                    'Your favorite items',
-                  ),
-                  _buildProfileTile(
-                    Icons.location_on_outlined,
-                    'Shipping Address',
-                    'Manage your addresses',
-                  ),
-                  _buildProfileTile(
-                    Icons.payment_outlined,
-                    'Payment Methods',
-                    'Credit cards, wallets',
-                  ),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('App Settings'),
-                  _buildProfileTile(
-                    Icons.notifications_none,
-                    'Notifications',
-                    'Control your alerts',
-                  ),
-                  _buildProfileTile(
-                    Icons.lock_outline,
-                    'Privacy',
-                    'Manage your security',
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton.icon(
-                      onPressed: () async {
-                        await CacheHelper.clearCache();
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      _buildSectionTitle('Account Settings'),
+                      _buildProfileTile(
+                        Icons.shopping_bag_outlined,
+                        'My Orders',
+                        'Track your orders',
+                      ),
+                      _buildProfileTile(
+                        Icons.favorite_outline,
+                        'Wishlist',
+                        'Your favorite items',
+                      ),
+                      _buildProfileTile(
+                        Icons.location_on_outlined,
+                        'Shipping Address',
+                        'Manage your addresses',
+                      ),
+                      _buildProfileTile(
+                        Icons.payment_outlined,
+                        'Payment Methods',
+                        'Credit cards, wallets',
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionTitle('App Settings'),
+                      _buildProfileTile(
+                        Icons.notifications_none,
+                        'Notifications',
+                        'Control your alerts',
+                      ),
+                      _buildProfileTile(
+                        Icons.lock_outline,
+                        'Privacy',
+                        'Manage your security',
+                      ),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton.icon(
+                          onPressed: () async {
+                            await CacheHelper.clearCache();
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (context) => const LoginScreen(),
+                              ),
+                              (route) => false,
+                            );
+                          },
+                          icon: const Icon(Icons.logout, color: Colors.red),
+                          label: const Text(
+                            'Logout',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          (route) => false,
-                        );
-                      },
-                      icon: const Icon(Icons.logout, color: Colors.red),
-                      label: const Text(
-                        'Logout',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.all(16),
+                            backgroundColor: Colors.red.withOpacity(0.05),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                          ),
                         ),
                       ),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.all(16),
-                        backgroundColor: Colors.red.withOpacity(0.05),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

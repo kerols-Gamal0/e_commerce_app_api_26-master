@@ -1,8 +1,10 @@
 import 'package:ecommerce_app_api_26/core/cash/cash_helper.dart';
 import 'package:ecommerce_app_api_26/features/auth/presentation/screens/login_screen.dart';
+import 'package:ecommerce_app_api_26/features/cart/logic/cart_provider.dart';
 import 'package:ecommerce_app_api_26/features/main_wrapper/presentation/screens/main_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:ecommerce_app_api_26/core/theme/app_theme.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,8 +12,11 @@ void main() async {
   String? token = await CacheHelper.getToken();
 
   runApp(
-    MyApp(
-      startWidget: token != null ? const MainWrapper() : const LoginScreen(),
+    ChangeNotifierProvider(
+      create: (context) => CartProvider(),
+      child: MyApp(
+        startWidget: token != null ? const MainWrapper() : const LoginScreen(),
+      ),
     ),
   );
 }
