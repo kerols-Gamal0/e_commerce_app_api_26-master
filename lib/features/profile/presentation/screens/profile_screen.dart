@@ -49,14 +49,23 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const CircleAvatar(
+                        child: CircleAvatar(
                           radius: 40,
                           backgroundColor: Colors.white,
-                          child: Icon(
-                            Icons.person,
-                            size: 40,
-                            color: Colors.blue,
-                          ),
+                          backgroundImage:
+                              (profile.avatar != null &&
+                                  profile.avatar!.isNotEmpty)
+                              ? NetworkImage(profile.avatar!) as ImageProvider
+                              : null,
+                          child:
+                              (profile.avatar == null ||
+                                  profile.avatar!.isEmpty)
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: Colors.blue,
+                                )
+                              : null,
                         ),
                       ),
                       const SizedBox(width: 20),
