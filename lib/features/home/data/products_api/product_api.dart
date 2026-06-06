@@ -17,7 +17,7 @@ class ProductApi {
 
   Future<List<ProductModel>> getProductsByCategory(int categoryId) async {
     Uri uri = Uri.parse(
-      EndPoint.baseUrl + EndPoint.products + '?categoryId=$categoryId',
+      '${EndPoint.baseUrl}${EndPoint.products}?categoryId=$categoryId',
     );
     var response = await http.get(uri);
     var json = jsonDecode(response.body) as List;

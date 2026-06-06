@@ -50,7 +50,7 @@ class AuthApi {
       body: jsonEncode(requestBody),
       headers: {"Content-Type": "application/json"},
     );
-    var responseBody = await response.body;
+    var responseBody = response.body;
     var json = jsonDecode(responseBody);
     if (response.statusCode == 200 || response.statusCode == 201) {
       SignUpModel signUpModel = SignUpModel.fromJson(json);
