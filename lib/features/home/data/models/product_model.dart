@@ -8,6 +8,7 @@ class ProductModel {
   List<String>? images;
   String? creationAt;
   String? updatedAt;
+  bool? isFavorite;
 
   ProductModel({
     this.id,
@@ -19,6 +20,7 @@ class ProductModel {
     this.images,
     this.creationAt,
     this.updatedAt,
+    this.isFavorite = false,
   });
 
   ProductModel.fromJson(Map<String, dynamic> json) {
@@ -30,7 +32,8 @@ class ProductModel {
     category = json['category'] != null
         ? Category.fromJson(json['category'])
         : null;
-    images = json['images'].cast<String>();
+    images = json['images'] != null ? List<String>.from(json['images']) : null;
+    isFavorite = json['isFavorite'] ?? false;
   }
 }
 

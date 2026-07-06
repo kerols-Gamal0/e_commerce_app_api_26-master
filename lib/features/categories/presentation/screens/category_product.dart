@@ -38,10 +38,12 @@ class CategoryProduct extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final product = products[index];
                   return ProductCard(
+                    id: product.id ?? 0,
                     title: product.title!,
                     price: product.price!.toDouble(),
                     description: product.description!,
                     image: product.images![0],
+                    isFavorite: product.isFavorite ?? false,
                   );
                 },
               ),

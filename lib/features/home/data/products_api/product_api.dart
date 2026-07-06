@@ -26,4 +26,14 @@ class ProductApi {
         .toList();
     return products;
   }
+
+  Future<bool> toggleFavoriteStatus(int productId, bool isFavorite) async {
+    Uri uri = Uri.parse('${EndPoint.baseUrl}${EndPoint.products}/$productId');
+    var response = await http.put(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'isFavorite': isFavorite}),
+    );
+    return response.statusCode == 200;
+  }
 }

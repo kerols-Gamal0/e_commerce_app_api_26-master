@@ -3,8 +3,46 @@ import 'package:ecommerce_app_api_26/features/home/data/products_api/product_api
 import 'package:flutter/material.dart';
 import 'package:ecommerce_app_api_26/features/home/presentation/widgets/product_card.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late Future<List<ProductModel>> _productsFuture;
+  List<ProductModel> allProducts = [];
+  List<ProductModel> filteredProducts = [];
+
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _productsFuture = ProductApi().getAllProducts();
+  }
+
+  void _filterProducts(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        filteredProducts = allProducts;
+      } else {
+        filteredProducts = allProducts
+            .where(
+              (product) =>
+                  product.title!.toLowerCase().contains(query.toLowerCase()),
+            )
+            .toList();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +85,8 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      body: FutureBuilder(
-        future: ProductApi().getAllProducts(),
+      body: FutureBuilder<List<ProductModel>>(
+        future: _productsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -56,11 +94,17 @@ class HomeScreen extends StatelessWidget {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
-          List<ProductModel> products = snapshot.data!;
+
+          if (allProducts.isEmpty && snapshot.hasData) {
+            allProducts = snapshot.data!;
+            if (_searchController.text.isEmpty) {
+              filteredProducts = allProducts;
+            }
+          }
+
           return SingleChildScrollView(
             child: Column(
               children: [
-                // Search Bar
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Container(
@@ -76,16 +120,29 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const TextField(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: _filterProducts,
                       decoration: InputDecoration(
                         hintText: 'Search products...',
                         border: InputBorder.none,
-                        icon: Icon(Icons.search, color: Colors.blue),
+                        icon: const Icon(Icons.search, color: Colors.blue),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.clear,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _filterProducts('');
+                                },
+                              )
+                            : null,
                       ),
                     ),
                   ),
                 ),
-                // Categories
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -103,13 +160,6 @@ class HomeScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: isAll ? Colors.blue : Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            if (!isAll)
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 5,
-                              ),
-                          ],
                         ),
                         child: Text(
                           cat,
@@ -122,31 +172,42 @@ class HomeScreen extends StatelessWidget {
                     }).toList(),
                   ),
                 ),
-                // Products Grid
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.7,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
+                filteredProducts.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Center(
+                          child: Text(
+                            'No products found!',
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
                         ),
-                    itemCount: products.length,
-                    itemBuilder: (context, index) {
-                      final product = products[index];
-                      return ProductCard(
-                        title: product.title!,
-                        price: product.price!.toDouble(),
-                        description: product.description!,
-                        image: product.images![0],
-                      );
-                    },
-                  ),
-                ),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.7,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
+                          itemCount: filteredProducts.length,
+                          itemBuilder: (context, index) {
+                            final product = filteredProducts[index];
+                            return ProductCard(
+                              id: product.id ?? 0,
+                              title: product.title!,
+                              price: product.price!.toDouble(),
+                              description: product.description!,
+                              image: product.images![0],
+                              isFavorite: product.isFavorite ?? false,
+                            );
+                          },
+                        ),
+                      ),
                 const SizedBox(height: 20),
               ],
             ),

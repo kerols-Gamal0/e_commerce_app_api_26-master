@@ -1,21 +1,61 @@
 import 'package:ecommerce_app_api_26/features/cart/data/models/cart_item_model.dart';
 import 'package:ecommerce_app_api_26/features/cart/logic/cart_provider.dart';
+import 'package:ecommerce_app_api_26/features/home/data/products_api/product_api.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends StatefulWidget {
+  final int id;
   final String title;
   final double price;
   final String description;
   final String image;
+  final bool isFavorite;
 
   const ProductCard({
     super.key,
+    required this.id,
     required this.title,
     required this.price,
     required this.description,
     required this.image,
+    required this.isFavorite,
   });
+
+  @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  late bool isFav;
+
+  @override
+  void initState() {
+    super.initState();
+    isFav = widget.isFavorite;
+  }
+
+  @override
+  void didUpdateWidget(covariant ProductCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isFavorite != widget.isFavorite) {
+      isFav = widget.isFavorite;
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    setState(() {
+      isFav = !isFav;
+    });
+
+    bool success = await ProductApi().toggleFavoriteStatus(widget.id, isFav);
+
+    if (!success) {
+      setState(() {
+        isFav = !isFav;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +82,7 @@ class ProductCard extends StatelessWidget {
                     top: Radius.circular(20),
                   ),
                   child: Image.network(
-                    image,
+                    widget.image,
                     fit: BoxFit.cover,
                     width: double.infinity,
                     height: double.infinity,
@@ -64,16 +104,19 @@ class ProductCard extends StatelessWidget {
                 PositionBag(
                   top: 10,
                   right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.favorite_border,
-                      size: 18,
-                      color: Colors.red,
+                  child: GestureDetector(
+                    onTap: _toggleFavorite,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        size: 18,
+                        color: Colors.red,
+                      ),
                     ),
                   ),
                 ),
@@ -86,7 +129,7 @@ class ProductCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  widget.title,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -96,7 +139,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  description,
+                  widget.description,
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -106,7 +149,7 @@ class ProductCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '\$$price',
+                      '\$${widget.price}',
                       style: const TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.bold,
@@ -116,11 +159,15 @@ class ProductCard extends StatelessWidget {
                     GestureDetector(
                       onTap: () {
                         context.read<CartProvider>().addToCart(
-                          CartItem(title: title, price: price, image: image),
+                          CartItem(
+                            title: widget.title,
+                            price: widget.price,
+                            image: widget.image,
+                          ),
                         );
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('$title added to cart!'),
+                            content: Text('${widget.title} added to cart!'),
                             duration: const Duration(seconds: 1),
                             backgroundColor: Colors.blue,
                           ),
