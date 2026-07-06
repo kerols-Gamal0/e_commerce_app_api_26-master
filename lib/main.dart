@@ -15,7 +15,7 @@ void main() async {
     ChangeNotifierProvider(
       create: (context) => CartProvider(),
       child: MyApp(
-        startWidget: token != null ? const MainWrapper() : const MainWrapper(),
+        startWidget: token != null ? const MainWrapper() : const SplashScreen(),
       ),
     ),
   );
